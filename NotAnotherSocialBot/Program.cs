@@ -17,6 +17,7 @@ var gistConsumer = serviceProvider.GetRequiredService<IGistConsumer>();
 var discordSharer = serviceProvider.GetRequiredService<IDiscordSharer>();
 
 var environmentVars = parser.GetEnvironmentVariables();
+var youTubeToDiscordWebHook = Environment.GetEnvironmentVariable("DISCORD_WEBHOOK_YOUTUBE")!;
 
 var lastState = await gistConsumer.LoadPreviousState<LastState>(environmentVars.GistOptions, "NotAnotherSocialBot");
 
@@ -40,10 +41,10 @@ var videoUrl = $"https://www.youtube.com/watch?v={oldestYouTubeVideo.VideoId}";
 
 var discordRequest = new DiscordRequest
 {
-    Content = $"**New Video!**\n\n{videoUrl}",
+    Content = $"**New Video @everyone !**\n\n{videoUrl}",
 };
 
-await discordSharer.SendToDiscord(discordRequest, "discord_webhook_goes_here");
+await discordSharer.SendToDiscord(discordRequest, youTubeToDiscordWebHook);
 
 lastState.LastProcessedIds[SocialMedia.YouTube] = oldestYouTubeVideo.VideoId;
 
