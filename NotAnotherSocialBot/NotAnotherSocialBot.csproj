@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="packages.Social.Oversharers" Version="0.0.9" />
+    <PackageReference Include="packages.Social.Oversharers" Version="0.0.10" />
   </ItemGroup>
 
   <ItemGroup>

@@ -29,8 +29,10 @@ public class YouTubeWatcher(
 
         var lastShared = lastState.LastShared.GetValueOrDefault(Platform);
         var videoToShare = await youTubeConsumer.RetrieveOldestNotSharedVideo(
-            environmentVars?.YouTubeChannelId!,
-            lastShared?.Id!);
+            environmentVars.YouTubeChannelId!,
+            environmentVars.YouTubeApiKey,
+            lastShared?.Id!,
+            nameof(NotAnotherSocialBot));
 
         if (videoToShare is null
             || string.IsNullOrWhiteSpace(videoToShare.VideoId)

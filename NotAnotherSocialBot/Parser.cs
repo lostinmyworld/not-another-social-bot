@@ -42,6 +42,8 @@ public class Parser : IParser
         };
 
         var youTubeChannelId = Environment.GetEnvironmentVariable("YOUTUBE_CHANNEL_ID")!;
+        var youTubeApiKey = Environment.GetEnvironmentVariable("YOUTUBE_API_KEY")!;
+
         var discordParams = new Dictionary<SocialMedia, string>
         {
             { SocialMedia.YouTube, Environment.GetEnvironmentVariable("DISCORD_WEBHOOK_YOUTUBE")! },
@@ -62,6 +64,7 @@ public class Parser : IParser
             enabledWatchers,
             enabledPublishers,
             youTubeChannelId,
+            youTubeApiKey,
             discordParams,
             twitterParams,
             threadParams);
@@ -70,7 +73,7 @@ public class Parser : IParser
     private static bool RetrieveFeatureFlagFromEnvironment(string value)
     {
         var isEnabledStr = Environment.GetEnvironmentVariable(value);
-        
+
         return bool.TryParse(isEnabledStr, out var isEnabled)
             && isEnabled;
     }
