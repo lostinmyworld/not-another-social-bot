@@ -1,0 +1,34 @@
+name: Not Another Social Bot
+
+on:
+  schedule:
+    - cron: '0 * * * *' # Runs at the top of every hour (e.g., 1:00, 2:00)
+  workflow_dispatch:
+
+jobs:
+  my_account:
+    if: ${{ vars.DISABLE_WATCHDOG_MINE != 'true' }}
+    runs-on: ubuntu-latest
+    env:
+      DISCORD_WEBHOOK_YOUTUBE: ${{ secrets.DISCORD_WEBHOOK_YOUTUBE }}
+      GIST_ID: ${{ secrets.GIST_ID }}
+      GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
+      GIST_STATE_FILE_NAME: ${{ secrets.GIST_STATE_FILE_NAME }}
+      PUBLISHER_DISCORD_ENABLED: ${{ secrets.PUBLISHER_DISCORD_ENABLED }}
+      PUBLISHER_TWITTER_ENABLED: ${{ secrets.PUBLISHER_TWITTER_ENABLED }}
+      WATCHER_INSTAGRAM_ENABLED: ${{ secrets.WATCHER_INSTAGRAM_ENABLED }}
+      WATCHER_TWITTER_ENABLED: ${{ secrets.WATCHER_TWITTER_ENABLED }}
+      WATCHER_YOUTUBE_ENABLED: ${{ secrets.WATCHER_YOUTUBE_ENABLED }}
+      YOUTUBE_CHANNEL_ID: ${{ secrets.YOUTUBE_CHANNEL_ID }}
+      YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.x"
+          source-url: https://nuget.pkg.github.com/lostinmyworld/index.json
+        env:
+          NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run Not Another Social Bot for me
+        run: dotnet run --project NotAnotherSocialBot
