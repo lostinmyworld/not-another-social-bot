@@ -1,7 +1,13 @@
-﻿using Social.Models.Gist;
+﻿using Social.Models.Enums;
+using Social.Models.Gist;
 
 namespace NotAnotherSocialBot.Models;
 
 public record EnvironmentVariables(
     GistOptions GistOptions,
-    string YouTubeChannelId);
+    IDictionary<SocialMedia, bool> EnabledWatchers,
+    IDictionary<SocialMedia, bool> EnabledPublishers,
+    string YouTubeChannelId,
+    IDictionary<SocialMedia, string> DiscordWebHooks,
+    TwitterParameters TwitterParams,
+    ThreadsParameters ThreadsParams);

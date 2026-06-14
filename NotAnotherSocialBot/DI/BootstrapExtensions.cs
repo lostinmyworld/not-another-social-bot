@@ -16,6 +16,12 @@ public static class BootstrapExtensions
 
         services.AddSingleton<IParser, Parser>();
 
+        services.AddSingleton<ISocialWatcher, YouTubeWatcher>();
+        services.AddSingleton<ISocialWatcher, InstaWatcher>();
+
+        services.AddSingleton<ISocialPublisher, DiscordPublisher>();
+        services.AddSingleton<ISocialPublisher, TwitterPublisher>();
+
         return services;
     }
 }

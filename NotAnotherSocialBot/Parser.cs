@@ -1,5 +1,6 @@
 ﻿using NotAnotherSocialBot.Abstractions;
 using NotAnotherSocialBot.Models;
+using Social.Models.Enums;
 using Social.Models.Gist;
 using Social.Oversharers.Abstractions;
 
@@ -29,8 +30,48 @@ public class Parser : IParser
 
     private static EnvironmentVariables RetrieveEnvironmentVariables(GistOptions gistOptions)
     {
-        var youTubeChannelId = Environment.GetEnvironmentVariable("YOUTUBE_CHANNEL_ID")!;
+        var enabledWatchers = new Dictionary<SocialMedia, bool>
+        {
+            { SocialMedia.YouTube, RetrieveFeatureFlagFromEnvironment("WATCHER_YOUTUBE_ENABLED") },
+            { SocialMedia.X, RetrieveFeatureFlagFromEnvironment("WATCHER_TWITTER_ENABLED") },
+        };
+        var enabledPublishers = new Dictionary<SocialMedia, bool>
+        {
+            { SocialMedia.Discord, RetrieveFeatureFlagFromEnvironment("PUBLISHER_DISCORD_ENABLED") },
+            { SocialMedia.X, RetrieveFeatureFlagFromEnvironment("PUBLISHER_TWITTER_ENABLED") },
+        };
 
-        return new(gistOptions, youTubeChannelId);
+        var youTubeChannelId = Environment.GetEnvironmentVariable("YOUTUBE_CHANNEL_ID")!;
+        var discordParams = new Dictionary<SocialMedia, string>
+        {
+            { SocialMedia.YouTube, Environment.GetEnvironmentVariable("DISCORD_WEBHOOK_YOUTUBE")! },
+        };
+
+        var twitterParams = new TwitterParameters(
+            Environment.GetEnvironmentVariable("TWITTER_CONSUMER_KEY")!,
+            Environment.GetEnvironmentVariable("TWITTER_CONSUMER_SECRET")!,
+            Environment.GetEnvironmentVariable("TWITTER_ACCESS_TOKEN")!,
+            Environment.GetEnvironmentVariable("TWITTER_ACCESS_SECRET")!);
+
+        var threadParams = new ThreadsParameters(
+            Environment.GetEnvironmentVariable("THREADS_APP_ID")!,
+            Environment.GetEnvironmentVariable("THREADS_ACCESS_TOKEN")!);
+
+        return new(
+            gistOptions,
+            enabledWatchers,
+            enabledPublishers,
+            youTubeChannelId,
+            discordParams,
+            twitterParams,
+            threadParams);
+    }
+
+    private static bool RetrieveFeatureFlagFromEnvironment(string value)
+    {
+        var isEnabledStr = Environment.GetEnvironmentVariable(value);
+        
+        return bool.TryParse(isEnabledStr, out var isEnabled)
+            && isEnabled;
     }
 }

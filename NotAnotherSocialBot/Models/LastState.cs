@@ -4,5 +4,5 @@ namespace NotAnotherSocialBot.Models;
 
 public class LastState
 {
-    public Dictionary<SocialMedia, string> LastProcessedIds { get; set; } = [];
+    public Dictionary<SocialMedia, LastPost> LastShared { get; set; } = [];
 }

@@ -1,10 +1,15 @@
 ﻿using NotAnotherSocialBot.Models;
+using Social.Models.Enums;
 
 namespace NotAnotherSocialBot.Abstractions;
 
 public interface ISocialWatcher
 {
-    //SocialMedia Platform { get; }
+    SocialMedia Platform { get; }
 
-    //Task<IEnumerable<SocialPost>> CheckForNewPostsAsync();
+    bool IsWatcherEnabled(EnvironmentVariables environmentVars);
+
+    Task Share(
+        LastState lastState,
+        EnvironmentVariables environmentVars);
 }
