@@ -31,7 +31,7 @@ public class DiscordPublisher(IDiscordSharer discordSharer) : SocialPublisherBas
 
             var discordRequest = new DiscordRequest
             {
-                Content = $"\n\n**New YouTube Video @everyone !!**{url}",
+                Content = $"\n\n**New YouTube Video @everyone !!**\n{url}",
             };
 
             await discordSharer.SendToDiscord(discordRequest, discordWebHook);
