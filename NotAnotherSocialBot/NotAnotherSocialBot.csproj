@@ -11,10 +11,8 @@
     <PackageReference Include="packages.Social.Oversharers" Version="2.0.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update=".env.local">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
+  <Target Name="CopyEnvLocal" AfterTargets="Build" Condition="Exists('.env.local')">
+    <Copy SourceFiles=".env.local" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+  </Target>
 
 </Project>
