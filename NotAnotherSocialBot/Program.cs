@@ -25,5 +25,13 @@ foreach (var watcher in watchers)
 {
     Console.WriteLine($"Starting watcher for {watcher.Platform}...");
 
-    await watcher.Share(lastState, environmentVars);
+    try
+    {
+        await watcher.Share(lastState, environmentVars);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Watcher for {watcher.Platform} failed with message: {ex.Message}.");
+        Environment.ExitCode = 1;
+    }
 }
