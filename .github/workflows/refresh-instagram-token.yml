@@ -1,0 +1,45 @@
+name: Refresh Instagram Token
+
+on:
+  schedule:
+    - cron: '0 3 1,15 * *' # 03:00 UTC on the 1st and 15th of every month
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  my_account:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Refresh IG_ACCESS_TOKEN
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          GH_TOKEN: ${{ secrets.IG_TOKEN_REFRESH_PAT }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "$IG_ACCESS_TOKEN" ] || [ -z "$GH_TOKEN" ]; then
+            echo "::error::Secrets IG_ACCESS_TOKEN and IG_TOKEN_REFRESH_PAT are both required."
+            exit 1
+          fi
+
+          response=$(curl --silent --get \
+            --data-urlencode "grant_type=ig_refresh_token" \
+            --data-urlencode "access_token=$IG_ACCESS_TOKEN" \
+            "https://graph.instagram.com/refresh_access_token")
+
+          new_token=$(jq -r '.access_token // empty' <<< "$response")
+
+          if [ -z "$new_token" ]; then
+            error_message=$(jq -r '.error.message // "unknown error"' <<< "$response")
+            echo "::error::Instagram did not return a new token: $error_message"
+            exit 1
+          fi
+
+          echo "::add-mask::$new_token"
+
+          printf '%s' "$new_token" | gh secret set IG_ACCESS_TOKEN --repo "$REPOSITORY"
+
+          expires_in_days=$(( $(jq -r '.expires_in // 0' <<< "$response") / 86400 ))
+          echo "IG_ACCESS_TOKEN refreshed. Valid for $expires_in_days days."
