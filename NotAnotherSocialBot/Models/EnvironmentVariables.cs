@@ -9,6 +9,7 @@ public record EnvironmentVariables(
     IDictionary<SocialMedia, bool> EnabledPublishers,
     string YouTubeChannelId,
     string YouTubeApiKey,
+    string InstagramToken,
     IDictionary<SocialMedia, string> DiscordWebHooks,
     TwitterParameters TwitterParams,
     ThreadsParameters ThreadsParams);

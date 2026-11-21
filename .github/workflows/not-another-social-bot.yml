@@ -14,10 +14,12 @@ jobs:
     if: ${{ vars.DISABLE_WATCHDOG_MINE != 'true' }}
     runs-on: ubuntu-latest
     env:
+      DISCORD_WEBHOOK_INSTAGRAM: ${{ secrets.DISCORD_WEBHOOK_INSTAGRAM }}
       DISCORD_WEBHOOK_YOUTUBE: ${{ secrets.DISCORD_WEBHOOK_YOUTUBE }}
       GIST_ID: ${{ secrets.GIST_ID }}
       GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
       GIST_STATE_FILE_NAME: ${{ secrets.GIST_STATE_FILE_NAME }}
+      IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
       PUBLISHER_DISCORD_ENABLED: ${{ secrets.PUBLISHER_DISCORD_ENABLED }}
       PUBLISHER_TWITTER_ENABLED: ${{ secrets.PUBLISHER_TWITTER_ENABLED }}
       WATCHER_INSTAGRAM_ENABLED: ${{ secrets.WATCHER_INSTAGRAM_ENABLED }}

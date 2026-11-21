@@ -2,7 +2,6 @@
 using NotAnotherSocialBot.Abstractions;
 using NotAnotherSocialBot.Models;
 using Social.Models.Enums;
-using Social.Models.Gist;
 using Social.Models.YouTube;
 using Social.Oversharers.Abstractions;
 
@@ -78,13 +77,5 @@ public class YouTubeWatcherTests
     }
 
     private static EnvironmentVariables CreateEnvironmentVariables()
-        => new(
-            new GistOptions(),
-            new Dictionary<SocialMedia, bool> { { SocialMedia.YouTube, true } },
-            new Dictionary<SocialMedia, bool>(),
-            "channel-id",
-            "api-key",
-            new Dictionary<SocialMedia, string>(),
-            new TwitterParameters("", "", "", ""),
-            new ThreadsParameters("", ""));
+        => TestEnvironment.Create(enabledWatchers: new() { { SocialMedia.YouTube, true } });
 }

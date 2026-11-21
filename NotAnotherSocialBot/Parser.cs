@@ -33,6 +33,7 @@ public class Parser : IParser
         var enabledWatchers = new Dictionary<SocialMedia, bool>
         {
             { SocialMedia.YouTube, RetrieveFeatureFlagFromEnvironment("WATCHER_YOUTUBE_ENABLED") },
+            { SocialMedia.Instagram, RetrieveFeatureFlagFromEnvironment("WATCHER_INSTAGRAM_ENABLED") },
             { SocialMedia.X, RetrieveFeatureFlagFromEnvironment("WATCHER_TWITTER_ENABLED") },
         };
         var enabledPublishers = new Dictionary<SocialMedia, bool>
@@ -44,9 +45,12 @@ public class Parser : IParser
         var youTubeChannelId = Environment.GetEnvironmentVariable("YOUTUBE_CHANNEL_ID")!;
         var youTubeApiKey = Environment.GetEnvironmentVariable("YOUTUBE_API_KEY")!;
 
+        var instagramToken = Environment.GetEnvironmentVariable("IG_ACCESS_TOKEN")!;
+
         var discordParams = new Dictionary<SocialMedia, string>
         {
             { SocialMedia.YouTube, Environment.GetEnvironmentVariable("DISCORD_WEBHOOK_YOUTUBE")! },
+            { SocialMedia.Instagram, Environment.GetEnvironmentVariable("DISCORD_WEBHOOK_INSTAGRAM")! },
         };
 
         var twitterParams = new TwitterParameters(
@@ -65,6 +69,7 @@ public class Parser : IParser
             enabledPublishers,
             youTubeChannelId,
             youTubeApiKey,
+            instagramToken,
             discordParams,
             twitterParams,
             threadParams);
