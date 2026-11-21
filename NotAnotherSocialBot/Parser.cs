@@ -35,7 +35,6 @@ public class Parser : IParser
             { SocialMedia.YouTube, RetrieveFeatureFlagFromEnvironment("WATCHER_YOUTUBE_ENABLED") },
             { SocialMedia.Instagram, RetrieveFeatureFlagFromEnvironment("WATCHER_INSTAGRAM_ENABLED") },
             { SocialMedia.X, RetrieveFeatureFlagFromEnvironment("WATCHER_TWITTER_ENABLED") },
-            { SocialMedia.Instagram, RetrieveFeatureFlagFromEnvironment("WATCHER_INSTAGRAM_ENABLED") },
         };
         var enabledPublishers = new Dictionary<SocialMedia, bool>
         {
