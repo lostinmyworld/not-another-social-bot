@@ -45,9 +45,22 @@ public class YouTubeWatcher(
         Console.WriteLine($"New video detected: {videoToShare.Title} ({videoToShare.VideoId})");
         var videoUrl = $"https://www.youtube.com/watch?v={videoToShare.VideoId}";
 
+        var isPublished = false;
+
         foreach (var publisher in socialPublishers)
         {
-            await publisher.Publish(videoUrl, environmentVars!, Platform);
+            var isPublishedByPublisher = await publisher.Publish(videoUrl, environmentVars!, Platform);
+
+            if (isPublishedByPublisher)
+            {
+                isPublished = true;
+            }
+        }
+
+        if (!isPublished)
+        {
+            Console.WriteLine($"No publisher shared {videoToShare.VideoId}. State not saved.");
+            return;
         }
 
         lastState.LastShared[SocialMedia.YouTube] = new(

@@ -5,6 +5,10 @@ on:
     - cron: '0 * * * *' # Runs at the top of every hour (e.g., 1:00, 2:00)
   workflow_dispatch:
 
+concurrency:
+  group: not-another-social-bot
+  cancel-in-progress: false
+
 jobs:
   my_account:
     if: ${{ vars.DISABLE_WATCHDOG_MINE != 'true' }}
