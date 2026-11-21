@@ -49,7 +49,12 @@ public class YouTubeWatcher(
 
         foreach (var publisher in socialPublishers)
         {
-            isPublished |= await publisher.Publish(videoUrl, environmentVars!, Platform);
+            var isPublishedByPublisher = await publisher.Publish(videoUrl, environmentVars!, Platform);
+
+            if (isPublishedByPublisher)
+            {
+                isPublished = true;
+            }
         }
 
         if (!isPublished)
