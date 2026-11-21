@@ -8,6 +8,18 @@ namespace NotAnotherSocialBot;
 
 public class DiscordPublisher(IDiscordSharer discordSharer) : SocialPublisherBase
 {
+    private static readonly string[] _instagramHeaders =
+    [
+        "**Το έχεις δει αυτό;**",
+        "**Μήπως σου ξέφυγε αυτό;**",
+        "**Κάτι νέο ανέβηκε 👀**",
+        "**Νέο post στον αέρα 🚀**",
+        "**Ρίξε μια ματιά σε αυτό 👇**",
+        "**Τσι τσι ρι πο τσι ρι**",
+        "**Notification; Δεν ήρθε; Σου το φέρνω εγώ.**",
+        "**Αυτό αξίζει ένα κλικ.**"
+    ];
+
     public override SocialMedia Platform => SocialMedia.Discord;
 
     public override async Task<bool> Publish(
@@ -31,7 +43,7 @@ public class DiscordPublisher(IDiscordSharer discordSharer) : SocialPublisherBas
 
             var discordRequest = new DiscordRequest
             {
-                Content = $"\n\n**New YouTube Video @everyone !!**\n{url}",
+                Content = BuildMessage(url, sourceSocial),
             };
 
             await discordSharer.SendToDiscord(discordRequest, discordWebHook);
@@ -44,5 +56,26 @@ public class DiscordPublisher(IDiscordSharer discordSharer) : SocialPublisherBas
         }
 
         return false;
+    }
+
+    private static string BuildMessage(string url, SocialMedia sourceSocial)
+    {
+        return sourceSocial switch
+        {
+            SocialMedia.Instagram => BuildInstagramMessage(url),
+            _ => $"\n\n**New YouTube Video @everyone !!**\n{url}",
+        };
+    }
+
+    private static string BuildInstagramMessage(string url)
+    {
+        var header = _instagramHeaders[Random.Shared.Next(_instagramHeaders.Length)];
+
+        if (string.IsNullOrWhiteSpace(url))
+        {
+            return header;
+        }
+
+        return $"{header}\n{url}";
     }
 }
