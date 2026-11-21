@@ -11,5 +11,6 @@ public abstract class SocialWatcherBase : ISocialWatcher
         => environmentVars!.EnabledWatchers.TryGetValue(Platform, out var watcherEnabled)
             && watcherEnabled;
 
+
     public abstract Task Share(LastState lastState, EnvironmentVariables environmentVars);
 }
