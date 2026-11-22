@@ -2,7 +2,7 @@ name: Not Another Social Bot
 
 on:
   schedule:
-    - cron: '0 * * * *' # Runs at the top of every hour (e.g., 1:00, 2:00)
+    - cron: '17 * * * *' # Runs at minute 17 of every hour (e.g., 1:17, 2:17)
   workflow_dispatch:
 
 concurrency:
