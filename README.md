@@ -42,21 +42,24 @@ GitHub Actions (hourly)
 
 ## Setup
 
-Add these as **repository secrets** (Settings → Secrets and variables → Actions).
+The bot serves any number of accounts. Each account = one secret with all its settings.
+(Settings → Secrets and variables → Actions)
 
-| Secret | Used for |
-|---|---|
-| `GIST_ID`, `GIST_TOKEN`, `GIST_STATE_FILE_NAME` | Where the shared-posts state is stored. Token needs the `gist` scope |
-| `WATCHER_YOUTUBE_ENABLED` | `true` to watch YouTube |
-| `YOUTUBE_CHANNEL_ID`, `YOUTUBE_API_KEY` | YouTube Data API |
-| `WATCHER_INSTAGRAM_ENABLED` | `true` to watch Instagram |
-| `IG_ACCESS_TOKEN` | Long-lived Instagram token (Instagram API with Instagram Login) |
-| `IG_TOKEN_REFRESH_PAT` | Fine-grained PAT, this repo only, **Secrets: Read and write**. Lets the refresh workflow save the renewed token |
-| `PUBLISHER_DISCORD_ENABLED` | `true` to post to Discord |
-| `DISCORD_WEBHOOK_YOUTUBE`, `DISCORD_WEBHOOK_INSTAGRAM` | Discord webhook per source |
-| `PUBLISHER_TWITTER_ENABLED`, `WATCHER_TWITTER_ENABLED` | X support (paid API) |
+| Name | Type | Value |
+|---|---|---|
+| `ACCOUNTS` | Variable | Account names, e.g. `["MINE","MARIA"]`. Letters, digits, `_` only |
+| `ACCOUNT_<NAME>` | Secret, one per account | Contents of [`account.env.example`](account.env.example), filled in |
+| `IG_TOKEN_REFRESH_PAT` | Secret, shared | Fine-grained PAT, this repo only, **Secrets: Read and write**. Lets the refresh workflow save renewed tokens |
 
-Optional **repository variable**: `DISABLE_WATCHDOG_MINE` = `true` pauses the bot.
+### Add an account
+
+1. Copy [`account.env.example`](account.env.example) and fill in what the account uses (YouTube, Instagram or both).
+   Give it its own `GIST_STATE_FILE_NAME`.
+2. Add it as secret `ACCOUNT_<NAME>`, e.g. `ACCOUNT_MARIA`.
+3. Add `<NAME>` to the `ACCOUNTS` variable.
+4. Optional: seed its Gist state (see below) to skip old posts.
+
+Remove an account → drop its name from `ACCOUNTS`. Pause everything → set `ACCOUNTS` to empty.
 
 ### Starting point
 
@@ -74,7 +77,7 @@ Optional **repository variable**: `DISABLE_WATCHDOG_MINE` = `true` pauses the bo
 
 ## Run locally
 
-1. Create `NotAnotherSocialBot/.env.local` with the same keys as the secrets above (`KEY=value`, one per line).
+1. Create `NotAnotherSocialBot/.env.local` with the same content as an `ACCOUNT_<NAME>` secret.
    It is gitignored. **Never commit it.**
 2. Run from the project folder, so `.env.local` is found:
 
