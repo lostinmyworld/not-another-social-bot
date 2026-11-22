@@ -93,6 +93,34 @@ public class InstaWatcherTests
         Assert.Empty(lastState.LastShared);
     }
 
+    [Fact]
+    public async Task Share_WatcherDisabledWithoutToken_SkipsWithoutError()
+    {
+        var lastState = new LastState();
+        var watcher = CreateWatcher(_postsNewestFirst, publishResult: true);
+        var environmentVars = TestEnvironment.Create(instagramToken: null);
+
+        await watcher.Share(lastState, environmentVars);
+
+        Assert.Empty(lastState.LastShared);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public async Task Share_TokenMissing_Throws(string? token)
+    {
+        var watcher = CreateWatcher(_postsNewestFirst, publishResult: true);
+        var environmentVars = TestEnvironment.Create(
+            enabledWatchers: new() { { SocialMedia.Instagram, true } },
+            instagramToken: token);
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => watcher.Share(new LastState(), environmentVars));
+
+        Assert.Equal("IG_ACCESS_TOKEN is missing.", exception.Message);
+    }
+
     private static InstaWatcher CreateWatcher(List<InstagramPost> posts, bool publishResult)
     {
         var instagramConsumer = new Mock<IInstagramConsumer>();

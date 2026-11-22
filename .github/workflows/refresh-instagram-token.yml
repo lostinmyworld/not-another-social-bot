@@ -19,8 +19,13 @@ jobs:
         run: |
           set -euo pipefail
 
-          if [ -z "$IG_ACCESS_TOKEN" ] || [ -z "$GH_TOKEN" ]; then
-            echo "::error::Secrets IG_ACCESS_TOKEN and IG_TOKEN_REFRESH_PAT are both required."
+          if [ -z "$IG_ACCESS_TOKEN" ]; then
+            echo "::error::Secret IG_ACCESS_TOKEN is missing."
+            exit 1
+          fi
+
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::Secret IG_TOKEN_REFRESH_PAT is missing."
             exit 1
           fi
 
