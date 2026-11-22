@@ -35,22 +35,22 @@ public class InstaWatcher(
         var postsNewestFirst = await instagramConsumer.RetrievePostsAsync(instagramRequest);
 
         var lastShared = lastState.LastShared.GetValueOrDefault(Platform);
-        var postToShare = FindOldestNotSharedPost(postsNewestFirst, lastShared?.Id);
+        var instagramPost = FindOldestNotSharedPost(postsNewestFirst, lastShared?.Id);
 
-        if (postToShare is null)
+        if (instagramPost is null)
         {
             Console.WriteLine($"No new posts to process. Exiting <{nameof(InstaWatcher)}.{nameof(Share)}>.");
             return;
         }
 
-        Console.WriteLine($"New post detected: {postToShare.Id}");
-        var postUrl = postToShare.Permalink ?? string.Empty;
+        Console.WriteLine($"New post detected: {instagramPost.Id}");
+        var postToShare = PostToShare.FromInstagram(instagramPost);
 
         var isPublished = false;
 
         foreach (var publisher in socialPublishers)
         {
-            var isPublishedByPublisher = await publisher.Publish(postUrl, environmentVars, Platform);
+            var isPublishedByPublisher = await publisher.Publish(postToShare, environmentVars, Platform);
 
             if (isPublishedByPublisher)
             {
@@ -60,14 +60,14 @@ public class InstaWatcher(
 
         if (!isPublished)
         {
-            Console.WriteLine($"No publisher shared {postToShare.Id}. State not saved.");
+            Console.WriteLine($"No publisher shared {instagramPost.Id}. State not saved.");
             return;
         }
 
         lastState.LastShared[SocialMedia.Instagram] = new(
-            postToShare.Id,
-            postUrl,
-            postToShare.Caption ?? string.Empty,
+            instagramPost.Id,
+            postToShare.Url,
+            instagramPost.Caption ?? string.Empty,
             DateTime.Now);
 
         await gistConsumer.SaveCurrentState(lastState, environmentVars.GistOptions);

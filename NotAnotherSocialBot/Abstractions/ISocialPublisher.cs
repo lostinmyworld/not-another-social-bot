@@ -10,7 +10,7 @@ public interface ISocialPublisher
     bool IsPublisherEnabled(EnvironmentVariables environmentVars);
 
     Task<bool> Publish(
-        string url,
+        PostToShare post,
         EnvironmentVariables environmentVars,
         SocialMedia sourceSocial);
 }

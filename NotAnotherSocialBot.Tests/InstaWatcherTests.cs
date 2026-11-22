@@ -131,7 +131,7 @@ public class InstaWatcherTests
         var publisher = new Mock<ISocialPublisher>();
         publisher
             .Setup(p => p.Publish(
-                It.IsAny<string>(),
+                It.IsAny<PostToShare>(),
                 It.IsAny<EnvironmentVariables>(),
                 It.IsAny<SocialMedia>()))
             .ReturnsAsync(publishResult);

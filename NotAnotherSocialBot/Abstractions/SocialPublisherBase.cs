@@ -11,5 +11,5 @@ public abstract class SocialPublisherBase : ISocialPublisher
         => environmentVars!.EnabledPublishers.TryGetValue(Platform, out var publisherEnabled)
             && publisherEnabled;
 
-    public abstract Task<bool> Publish(string url, EnvironmentVariables environmentVars, SocialMedia sourceSocial);
+    public abstract Task<bool> Publish(PostToShare post, EnvironmentVariables environmentVars, SocialMedia sourceSocial);
 }
