@@ -49,12 +49,13 @@ public class YouTubeWatcher(
 
         Console.WriteLine($"New video detected: {videoToShare.Title} ({videoToShare.VideoId})");
         var videoUrl = $"https://www.youtube.com/watch?v={videoToShare.VideoId}";
+        var postToShare = new PostToShare(videoUrl, videoToShare.Title);
 
         var isPublished = false;
 
         foreach (var publisher in socialPublishers)
         {
-            var isPublishedByPublisher = await publisher.Publish(videoUrl, environmentVars!, Platform);
+            var isPublishedByPublisher = await publisher.Publish(postToShare, environmentVars!, Platform);
 
             if (isPublishedByPublisher)
             {

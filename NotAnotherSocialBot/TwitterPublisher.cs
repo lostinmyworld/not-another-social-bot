@@ -11,7 +11,7 @@ public class TwitterPublisher(ITwitterSharer twitterSharer) : SocialPublisherBas
     public override SocialMedia Platform => SocialMedia.X;
 
     public override async Task<bool> Publish(
-        string url,
+        PostToShare post,
         EnvironmentVariables environmentVars,
         SocialMedia sourceSocial)
     {
@@ -34,7 +34,7 @@ public class TwitterPublisher(ITwitterSharer twitterSharer) : SocialPublisherBas
             environmentVars.TwitterParams.ConsumerSecret,
             environmentVars.TwitterParams.AccessToken,
             environmentVars.TwitterParams.AccessSecret);
-        var twitterPostRequest = new TwitterPostRequest(url);
+        var twitterPostRequest = new TwitterPostRequest(post.Url);
 
         var response = await twitterSharer.SharePost(
             twitterCredentials,

@@ -8,6 +8,9 @@ namespace NotAnotherSocialBot;
 
 public class DiscordPublisher(IDiscordSharer discordSharer) : SocialPublisherBase
 {
+    private const string DefaultInstagramTitle = "View on Instagram";
+    private const int MaxEmbedTitleLength = 256;
+
     private static readonly string[] _instagramHeaders =
     [
         "**Το έχεις δει αυτό;**",
@@ -23,7 +26,7 @@ public class DiscordPublisher(IDiscordSharer discordSharer) : SocialPublisherBas
     public override SocialMedia Platform => SocialMedia.Discord;
 
     public override async Task<bool> Publish(
-        string url,
+        PostToShare post,
         EnvironmentVariables environmentVars,
         SocialMedia sourceSocial)
     {
@@ -41,10 +44,9 @@ public class DiscordPublisher(IDiscordSharer discordSharer) : SocialPublisherBas
                 return false;
             }
 
-            var discordRequest = new DiscordRequest
-            {
-                Content = BuildMessage(url, sourceSocial),
-            };
+            var discordRequest = sourceSocial == SocialMedia.Instagram
+                ? BuildInstagramRequest(post)
+                : BuildYouTubeRequest(post);
 
             await discordSharer.SendToDiscord(discordRequest, discordWebHook);
 
@@ -58,24 +60,59 @@ public class DiscordPublisher(IDiscordSharer discordSharer) : SocialPublisherBas
         return false;
     }
 
-    private static string BuildMessage(string url, SocialMedia sourceSocial)
+    private static DiscordRequest BuildYouTubeRequest(PostToShare post)
     {
-        return sourceSocial switch
+        return new()
         {
-            SocialMedia.Instagram => BuildInstagramMessage(url),
-            _ => $"\n\n**New YouTube Video @everyone !!**\n{url}",
+            Content = $"\n\n**New YouTube Video @everyone !!**\n{post.Url}",
         };
     }
 
-    private static string BuildInstagramMessage(string url)
+    private static DiscordRequest BuildInstagramRequest(PostToShare post)
     {
         var header = _instagramHeaders[Random.Shared.Next(_instagramHeaders.Length)];
 
-        if (string.IsNullOrWhiteSpace(url))
+        return new()
         {
-            return header;
+            Content = header,
+            Embeds = [BuildInstagramEmbed(post)],
+        };
+    }
+
+    private static Dictionary<string, object?> BuildInstagramEmbed(PostToShare post)
+    {
+        var embed = new Dictionary<string, object?>
+        {
+            ["title"] = BuildEmbedTitle(post.Title),
+        };
+
+        if (!string.IsNullOrWhiteSpace(post.Url))
+        {
+            embed["url"] = post.Url;
         }
 
-        return $"{header}\n{url}";
+        if (!string.IsNullOrWhiteSpace(post.ImageUrl))
+        {
+            embed["image"] = new Dictionary<string, object?> { ["url"] = post.ImageUrl };
+        }
+
+        return embed;
+    }
+
+    private static string BuildEmbedTitle(string? caption)
+    {
+        if (string.IsNullOrWhiteSpace(caption))
+        {
+            return DefaultInstagramTitle;
+        }
+
+        var firstLine = caption.Split('\n')[0].Trim();
+
+        if (firstLine.Length <= MaxEmbedTitleLength)
+        {
+            return firstLine;
+        }
+
+        return $"{firstLine[..(MaxEmbedTitleLength - 1)]}…";
     }
 }
