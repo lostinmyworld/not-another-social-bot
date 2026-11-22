@@ -8,19 +8,26 @@ on:
 permissions: {}
 
 jobs:
-  my_account:
+  account:
+    if: ${{ vars.ACCOUNTS != '' }}
+    name: ${{ matrix.account }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        account: ${{ fromJSON(vars.ACCOUNTS) }}
     steps:
       - name: Refresh IG_ACCESS_TOKEN
         env:
-          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          ACCOUNT: ${{ matrix.account }}
+          ACCOUNT_SETTINGS: ${{ secrets[format('ACCOUNT_{0}', matrix.account)] }}
           GH_TOKEN: ${{ secrets.IG_TOKEN_REFRESH_PAT }}
           REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
 
-          if [ -z "$IG_ACCESS_TOKEN" ]; then
-            echo "::error::Secret IG_ACCESS_TOKEN is missing."
+          if [ -z "$ACCOUNT_SETTINGS" ]; then
+            echo "::error::Secret ACCOUNT_$ACCOUNT is missing."
             exit 1
           fi
 
@@ -29,22 +36,36 @@ jobs:
             exit 1
           fi
 
+          current_token=$(grep -m1 '^IG_ACCESS_TOKEN=' <<< "$ACCOUNT_SETTINGS" | cut -d= -f2- | tr -d '\r' || true)
+
+          if [ -z "$current_token" ]; then
+            echo "Skipping $ACCOUNT: no IG_ACCESS_TOKEN."
+            exit 0
+          fi
+
+          echo "::add-mask::$current_token"
+
           response=$(curl --silent --get \
             --data-urlencode "grant_type=ig_refresh_token" \
-            --data-urlencode "access_token=$IG_ACCESS_TOKEN" \
+            --data-urlencode "access_token=$current_token" \
             "https://graph.instagram.com/refresh_access_token")
 
           new_token=$(jq -r '.access_token // empty' <<< "$response")
 
           if [ -z "$new_token" ]; then
             error_message=$(jq -r '.error.message // "unknown error"' <<< "$response")
-            echo "::error::Instagram did not return a new token: $error_message"
+            echo "::error::Instagram did not return a new token for $ACCOUNT: $error_message"
             exit 1
           fi
 
           echo "::add-mask::$new_token"
 
-          printf '%s' "$new_token" | gh secret set IG_ACCESS_TOKEN --repo "$REPOSITORY"
+          updated_settings=$(NEW_TOKEN="$new_token" awk '
+            /^IG_ACCESS_TOKEN=/ { print "IG_ACCESS_TOKEN=" ENVIRON["NEW_TOKEN"]; next }
+            { print }
+          ' <<< "$ACCOUNT_SETTINGS")
+
+          printf '%s' "$updated_settings" | gh secret set "ACCOUNT_$ACCOUNT" --repo "$REPOSITORY"
 
           expires_in_days=$(( $(jq -r '.expires_in // 0' <<< "$response") / 86400 ))
-          echo "IG_ACCESS_TOKEN refreshed. Valid for $expires_in_days days."
+          echo "IG_ACCESS_TOKEN refreshed for $ACCOUNT. Valid for $expires_in_days days."
