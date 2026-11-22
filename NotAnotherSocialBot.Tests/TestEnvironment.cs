@@ -9,14 +9,17 @@ public static class TestEnvironment
     public static EnvironmentVariables Create(
         Dictionary<SocialMedia, bool>? enabledWatchers = null,
         Dictionary<SocialMedia, bool>? enabledPublishers = null,
-        Dictionary<SocialMedia, string>? discordWebHooks = null)
+        Dictionary<SocialMedia, string>? discordWebHooks = null,
+        string? youTubeChannelId = "channel-id",
+        string? youTubeApiKey = "api-key",
+        string? instagramToken = "instagram-token")
         => new(
             new GistOptions(),
             enabledWatchers ?? [],
             enabledPublishers ?? [],
-            "channel-id",
-            "api-key",
-            "instagram-token",
+            youTubeChannelId!,
+            youTubeApiKey!,
+            instagramToken!,
             discordWebHooks ?? [],
             new TwitterParameters("", "", "", ""),
             new ThreadsParameters("", ""));

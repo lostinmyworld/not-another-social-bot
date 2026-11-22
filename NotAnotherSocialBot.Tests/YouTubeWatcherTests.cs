@@ -44,6 +44,50 @@ public class YouTubeWatcherTests
         Assert.Equal(VideoId, lastState.LastShared[SocialMedia.YouTube].Id);
     }
 
+    [Fact]
+    public async Task Share_WatcherDisabledWithoutSettings_SkipsWithoutError()
+    {
+        var lastState = new LastState();
+        var watcher = CreateWatcher(true);
+        var environmentVars = TestEnvironment.Create(youTubeChannelId: null, youTubeApiKey: null);
+
+        await watcher.Share(lastState, environmentVars);
+
+        Assert.Empty(lastState.LastShared);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public async Task Share_ChannelIdMissing_Throws(string? channelId)
+    {
+        var watcher = CreateWatcher(true);
+        var environmentVars = TestEnvironment.Create(
+            enabledWatchers: new() { { SocialMedia.YouTube, true } },
+            youTubeChannelId: channelId);
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => watcher.Share(new LastState(), environmentVars));
+
+        Assert.Equal("YOUTUBE_CHANNEL_ID is missing.", exception.Message);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public async Task Share_ApiKeyMissing_Throws(string? apiKey)
+    {
+        var watcher = CreateWatcher(true);
+        var environmentVars = TestEnvironment.Create(
+            enabledWatchers: new() { { SocialMedia.YouTube, true } },
+            youTubeApiKey: apiKey);
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => watcher.Share(new LastState(), environmentVars));
+
+        Assert.Equal("YOUTUBE_API_KEY is missing.", exception.Message);
+    }
+
     private static YouTubeWatcher CreateWatcher(params bool[] publishResults)
     {
         var youTubeConsumer = new Mock<IYouTubeConsumer>();

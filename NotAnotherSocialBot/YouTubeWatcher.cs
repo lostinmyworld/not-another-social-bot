@@ -16,15 +16,20 @@ public class YouTubeWatcher(
         LastState lastState,
         EnvironmentVariables environmentVars)
     {
-        if (environmentVars is null
-            || string.IsNullOrWhiteSpace(environmentVars.YouTubeChannelId))
+        if (!IsWatcherEnabled(environmentVars))
         {
+            Console.WriteLine($"Skipping {Platform}: WATCHER_YOUTUBE_ENABLED is not true.");
             return;
         }
 
-        if (!IsWatcherEnabled(environmentVars))
+        if (string.IsNullOrWhiteSpace(environmentVars.YouTubeChannelId))
         {
-            return;
+            throw new InvalidOperationException("YOUTUBE_CHANNEL_ID is missing.");
+        }
+
+        if (string.IsNullOrWhiteSpace(environmentVars.YouTubeApiKey))
+        {
+            throw new InvalidOperationException("YOUTUBE_API_KEY is missing.");
         }
 
         var lastShared = lastState.LastShared.GetValueOrDefault(Platform);

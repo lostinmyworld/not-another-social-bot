@@ -20,15 +20,15 @@ public class InstaWatcher(
         LastState lastState,
         EnvironmentVariables environmentVars)
     {
-        if (environmentVars is null
-            || string.IsNullOrWhiteSpace(environmentVars.InstagramToken))
+        if (!IsWatcherEnabled(environmentVars))
         {
+            Console.WriteLine($"Skipping {Platform}: WATCHER_INSTAGRAM_ENABLED is not true.");
             return;
         }
 
-        if (!IsWatcherEnabled(environmentVars))
+        if (string.IsNullOrWhiteSpace(environmentVars.InstagramToken))
         {
-            return;
+            throw new InvalidOperationException("IG_ACCESS_TOKEN is missing.");
         }
 
         var instagramRequest = new InstagramRequest(environmentVars.InstagramToken, UserAgent, PostsToFetch);
