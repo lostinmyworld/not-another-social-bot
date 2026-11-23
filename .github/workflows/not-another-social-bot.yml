@@ -14,6 +14,7 @@ jobs:
     if: ${{ vars.ACCOUNTS != '' }}
     name: ${{ matrix.account }}
     runs-on: ubuntu-latest
+    environment: ${{ matrix.account }}
     strategy:
       fail-fast: false
       matrix:
@@ -27,28 +28,20 @@ jobs:
           source-url: https://nuget.pkg.github.com/lostinmyworld/index.json
         env:
           NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Write account settings
-        env:
-          ACCOUNT: ${{ matrix.account }}
-          ACCOUNT_SETTINGS: ${{ secrets[format('ACCOUNT_{0}', matrix.account)] }}
-        run: |
-          set -euo pipefail
-
-          if [ -z "$ACCOUNT_SETTINGS" ]; then
-            echo "::error::Secret ACCOUNT_$ACCOUNT is missing."
-            exit 1
-          fi
-
-          while IFS= read -r line; do
-            line="${line%$'\r'}"
-            value="${line#*=}"
-
-            if [ "$value" != "$line" ] && [ -n "$value" ] && [ "$value" != "true" ] && [ "$value" != "false" ]; then
-              echo "::add-mask::$value"
-            fi
-          done <<< "$ACCOUNT_SETTINGS"
-
-          printf '%s\n' "$ACCOUNT_SETTINGS" > NotAnotherSocialBot/.env.local
       - name: Run Not Another Social Bot
         working-directory: NotAnotherSocialBot
+        env:
+          GIST_ID: ${{ secrets.GIST_ID }}
+          GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
+          GIST_STATE_FILE_NAME: ${{ vars.GIST_STATE_FILE_NAME }}
+          WATCHER_YOUTUBE_ENABLED: ${{ vars.WATCHER_YOUTUBE_ENABLED }}
+          YOUTUBE_CHANNEL_ID: ${{ vars.YOUTUBE_CHANNEL_ID }}
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          DISCORD_WEBHOOK_YOUTUBE: ${{ secrets.DISCORD_WEBHOOK_YOUTUBE }}
+          WATCHER_INSTAGRAM_ENABLED: ${{ vars.WATCHER_INSTAGRAM_ENABLED }}
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          DISCORD_WEBHOOK_INSTAGRAM: ${{ secrets.DISCORD_WEBHOOK_INSTAGRAM }}
+          THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+          PUBLISHER_DISCORD_ENABLED: ${{ vars.PUBLISHER_DISCORD_ENABLED }}
+          PUBLISHER_THREADS_ENABLED: ${{ vars.PUBLISHER_THREADS_ENABLED }}
         run: dotnet run

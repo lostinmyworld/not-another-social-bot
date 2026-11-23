@@ -12,6 +12,7 @@ jobs:
     if: ${{ vars.ACCOUNTS != '' }}
     name: ${{ matrix.account }}
     runs-on: ubuntu-latest
+    environment: ${{ matrix.account }}
     strategy:
       fail-fast: false
       matrix:
@@ -20,23 +21,18 @@ jobs:
       - name: Refresh IG_ACCESS_TOKEN and THREADS_ACCESS_TOKEN
         env:
           ACCOUNT: ${{ matrix.account }}
-          ACCOUNT_SETTINGS: ${{ secrets[format('ACCOUNT_{0}', matrix.account)] }}
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
           GH_TOKEN: ${{ secrets.IG_TOKEN_REFRESH_PAT }}
           REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
-
-          if [ -z "$ACCOUNT_SETTINGS" ]; then
-            echo "::error::Secret ACCOUNT_$ACCOUNT is missing."
-            exit 1
-          fi
 
           if [ -z "$GH_TOKEN" ]; then
             echo "::error::Secret IG_TOKEN_REFRESH_PAT is missing."
             exit 1
           fi
 
-          settings_changed=false
           refresh_failed=false
 
           refresh_token() {
@@ -44,15 +40,12 @@ jobs:
             local grant_type=$2
             local refresh_url=$3
 
-            local current_token
-            current_token=$(grep -m1 "^$key=" <<< "$ACCOUNT_SETTINGS" | cut -d= -f2- | tr -d '\r' || true)
+            local current_token="${!key}"
 
             if [ -z "$current_token" ]; then
               echo "Skipping $key for $ACCOUNT: not set."
               return 0
             fi
-
-            echo "::add-mask::$current_token"
 
             local response
             response=$(curl --silent --get \
@@ -72,11 +65,10 @@ jobs:
 
             echo "::add-mask::$new_token"
 
-            ACCOUNT_SETTINGS=$(KEY="$key" NEW_TOKEN="$new_token" awk '
-              index($0, ENVIRON["KEY"] "=") == 1 { print ENVIRON["KEY"] "=" ENVIRON["NEW_TOKEN"]; next }
-              { print }
-            ' <<< "$ACCOUNT_SETTINGS")
-            settings_changed=true
+            if ! printf '%s' "$new_token" | gh secret set "$key" --env "$ACCOUNT" --repo "$REPOSITORY"; then
+              echo "::error::Could not save the new $key for $ACCOUNT."
+              return 1
+            fi
 
             local expires_in_days
             expires_in_days=$(( $(jq -r '.expires_in // 0' <<< "$response") / 86400 ))
@@ -85,10 +77,6 @@ jobs:
 
           refresh_token IG_ACCESS_TOKEN ig_refresh_token "https://graph.instagram.com/refresh_access_token" || refresh_failed=true
           refresh_token THREADS_ACCESS_TOKEN th_refresh_token "https://graph.threads.com/refresh_access_token" || refresh_failed=true
-
-          if [ "$settings_changed" = true ]; then
-            printf '%s' "$ACCOUNT_SETTINGS" | gh secret set "ACCOUNT_$ACCOUNT" --repo "$REPOSITORY"
-          fi
 
           if [ "$refresh_failed" = true ]; then
             exit 1

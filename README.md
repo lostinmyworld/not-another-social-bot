@@ -43,20 +43,34 @@ GitHub Actions (hourly)
 
 ## Setup
 
-The bot serves any number of accounts. Each account = one secret with all its settings.
-(Settings → Secrets and variables → Actions)
+The bot serves any number of accounts. Each account = one GitHub **environment** with the same setting names.
+Change one setting → edit just that secret or variable.
+
+Repository level (Settings → Secrets and variables → Actions):
 
 | Name | Type | Value |
 |---|---|---|
-| `ACCOUNTS` | Variable | Account names, e.g. `["MINE","MARIA"]`. Letters, digits, `_` only |
-| `ACCOUNT_<NAME>` | Secret, one per account | Contents of [`account.env.example`](account.env.example), filled in |
-| `IG_TOKEN_REFRESH_PAT` | Secret, shared | Fine-grained PAT, this repo only, **Secrets: Read and write**. Lets the refresh workflow save renewed tokens |
+| `ACCOUNTS` | Variable | Account names = environment names, e.g. `["MINE","MARIA"]` |
+| `IG_TOKEN_REFRESH_PAT` | Secret | Fine-grained PAT, this repo only, **Secrets: Read and write** and **Environments: Read and write**. Lets the refresh workflow save renewed tokens |
+
+Per account (Settings → Environments → `<NAME>`):
+
+| Secrets | Variables |
+|---|---|
+| `GIST_ID` | `GIST_STATE_FILE_NAME` |
+| `GIST_TOKEN` | `WATCHER_YOUTUBE_ENABLED` |
+| `YOUTUBE_API_KEY` | `YOUTUBE_CHANNEL_ID` |
+| `DISCORD_WEBHOOK_YOUTUBE` | `WATCHER_INSTAGRAM_ENABLED` |
+| `IG_ACCESS_TOKEN` | `PUBLISHER_DISCORD_ENABLED` |
+| `DISCORD_WEBHOOK_INSTAGRAM` | `PUBLISHER_THREADS_ENABLED` |
+| `THREADS_ACCESS_TOKEN` | |
+
+Leave out what the account doesn't use. Flags are `true` or `false`.
 
 ### Add an account
 
-1. Copy [`account.env.example`](account.env.example) and fill in what the account uses (YouTube, Instagram or both).
-   Give it its own `GIST_STATE_FILE_NAME`.
-2. Add it as secret `ACCOUNT_<NAME>`, e.g. `ACCOUNT_MARIA`.
+1. Settings → Environments → **New environment** → name it, e.g. `MARIA`.
+2. Add its secrets and variables from the table above. Give it its own `GIST_STATE_FILE_NAME`.
 3. Add `<NAME>` to the `ACCOUNTS` variable.
 4. Optional: seed its Gist state (see below) to skip old posts.
 
@@ -84,7 +98,7 @@ Remove an account → drop its name from `ACCOUNTS`. Pause everything → set `A
 
 ## Run locally
 
-1. Create `NotAnotherSocialBot/.env.local` with the same content as an `ACCOUNT_<NAME>` secret.
+1. Copy [`account.env.example`](account.env.example) to `NotAnotherSocialBot/.env.local` and fill it in.
    It is gitignored. **Never commit it.**
 2. Run from the project folder, so `.env.local` is found:
 
