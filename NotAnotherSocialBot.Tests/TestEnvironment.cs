@@ -12,7 +12,8 @@ public static class TestEnvironment
         Dictionary<SocialMedia, string>? discordWebHooks = null,
         string? youTubeChannelId = "channel-id",
         string? youTubeApiKey = "api-key",
-        string? instagramToken = "instagram-token")
+        string? instagramToken = "instagram-token",
+        string? threadsToken = "threads-token")
         => new(
             new GistOptions(),
             enabledWatchers ?? [],
@@ -22,5 +23,5 @@ public static class TestEnvironment
             instagramToken!,
             discordWebHooks ?? [],
             new TwitterParameters("", "", "", ""),
-            new ThreadsParameters("", ""));
+            new ThreadsParameters("", threadsToken!));
 }

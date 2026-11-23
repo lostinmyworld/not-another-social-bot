@@ -3,7 +3,7 @@
 [![Not Another Social Bot](https://github.com/lostinmyworld/not-another-social-bot/actions/workflows/not-another-social-bot.yml/badge.svg?branch=main)](https://github.com/lostinmyworld/not-another-social-bot/actions/workflows/not-another-social-bot.yml)
 [![Refresh Instagram Token](https://github.com/lostinmyworld/not-another-social-bot/actions/workflows/refresh-instagram-token.yml/badge.svg?branch=main)](https://github.com/lostinmyworld/not-another-social-bot/actions/workflows/refresh-instagram-token.yml)
 
-A small .NET bot that watches your YouTube channel and Instagram account and shares each new post to Discord (and X).
+A small .NET bot that watches your YouTube channel and Instagram account and shares each new post to Discord and Threads (and X).
 It runs on a GitHub Actions schedule, so there is no server to host.
 
 ## What it does
@@ -12,7 +12,7 @@ It runs on a GitHub Actions schedule, so there is no server to host.
 - **Shares one post per run**, oldest not-shared first, so a backlog goes out gradually instead of all at once.
 - **Remembers what it shared** in a GitHub Gist, so nothing is posted twice.
 - **Fails loudly**: a broken token, API error, or a missing setting for an enabled watcher turns the run red instead of silently doing nothing.
-- **Renews the Instagram token** automatically, twice a month.
+- **Renews the Instagram and Threads tokens** automatically, twice a month.
 
 ## Sources and targets
 
@@ -24,6 +24,7 @@ It runs on a GitHub Actions schedule, so there is no server to host.
 | Publisher (target) | Status |
 |---|---|
 | Discord | ✅ YouTube: "New YouTube Video" message. Instagram: random header |
+| Threads | ✅ Text post: title (first line) + link with preview |
 | X (Twitter) | ⚠️ Implemented, needs a paid X API plan |
 
 ## How it works
@@ -33,7 +34,7 @@ GitHub Actions (hourly)
   └─ load last shared posts from Gist
   └─ for each enabled watcher (YouTube, Instagram)
        └─ find the oldest post not shared yet
-       └─ send it to every enabled publisher (Discord, X)
+       └─ send it to every enabled publisher (Discord, Threads, X)
        └─ at least one succeeded → save it to Gist
 ```
 
@@ -58,6 +59,12 @@ The bot serves any number of accounts. Each account = one secret with all its se
 2. Add it as secret `ACCOUNT_<NAME>`, e.g. `ACCOUNT_MARIA`.
 3. Add `<NAME>` to the `ACCOUNTS` variable.
 4. Optional: seed its Gist state (see below) to skip old posts.
+
+### Threads token
+
+1. In your Meta app, add the **Access the Threads API** use case with `threads_basic` and `threads_content_publish`.
+2. Add the Threads profile as a tester and accept the invite from that Threads profile.
+3. Generate a long-lived token and put it in `THREADS_ACCESS_TOKEN`, with `PUBLISHER_THREADS_ENABLED=true`.
 
 Remove an account → drop its name from `ACCOUNTS`. Pause everything → set `ACCOUNTS` to empty.
 
@@ -97,4 +104,4 @@ dotnet test NotAnotherSocialBot.Tests
 ## Built with
 
 - .NET 10
-- [packages.SocialModels](https://github.com/lostinmyworld/packages.SocialModels) — shared clients for YouTube, Instagram, Discord, X and Gist
+- [packages.SocialModels](https://github.com/lostinmyworld/packages.SocialModels) — shared clients for YouTube, Instagram, Discord, Threads, X and Gist

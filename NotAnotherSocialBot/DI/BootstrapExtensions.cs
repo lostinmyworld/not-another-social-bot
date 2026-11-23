@@ -21,6 +21,7 @@ public static class BootstrapExtensions
 
         services.AddSingleton<ISocialPublisher, DiscordPublisher>();
         services.AddSingleton<ISocialPublisher, TwitterPublisher>();
+        services.AddSingleton<ISocialPublisher, ThreadsPublisher>();
 
         return services;
     }

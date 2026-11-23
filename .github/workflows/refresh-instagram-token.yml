@@ -17,7 +17,7 @@ jobs:
       matrix:
         account: ${{ fromJSON(vars.ACCOUNTS) }}
     steps:
-      - name: Refresh IG_ACCESS_TOKEN
+      - name: Refresh IG_ACCESS_TOKEN and THREADS_ACCESS_TOKEN
         env:
           ACCOUNT: ${{ matrix.account }}
           ACCOUNT_SETTINGS: ${{ secrets[format('ACCOUNT_{0}', matrix.account)] }}
@@ -36,36 +36,60 @@ jobs:
             exit 1
           fi
 
-          current_token=$(grep -m1 '^IG_ACCESS_TOKEN=' <<< "$ACCOUNT_SETTINGS" | cut -d= -f2- | tr -d '\r' || true)
+          settings_changed=false
+          refresh_failed=false
 
-          if [ -z "$current_token" ]; then
-            echo "Skipping $ACCOUNT: no IG_ACCESS_TOKEN."
-            exit 0
+          refresh_token() {
+            local key=$1
+            local grant_type=$2
+            local refresh_url=$3
+
+            local current_token
+            current_token=$(grep -m1 "^$key=" <<< "$ACCOUNT_SETTINGS" | cut -d= -f2- | tr -d '\r' || true)
+
+            if [ -z "$current_token" ]; then
+              echo "Skipping $key for $ACCOUNT: not set."
+              return 0
+            fi
+
+            echo "::add-mask::$current_token"
+
+            local response
+            response=$(curl --silent --get \
+              --data-urlencode "grant_type=$grant_type" \
+              --data-urlencode "access_token=$current_token" \
+              "$refresh_url")
+
+            local new_token
+            new_token=$(jq -r '.access_token // empty' <<< "$response")
+
+            if [ -z "$new_token" ]; then
+              local error_message
+              error_message=$(jq -r '.error.message // "unknown error"' <<< "$response")
+              echo "::error::No new $key for $ACCOUNT: $error_message"
+              return 1
+            fi
+
+            echo "::add-mask::$new_token"
+
+            ACCOUNT_SETTINGS=$(KEY="$key" NEW_TOKEN="$new_token" awk '
+              index($0, ENVIRON["KEY"] "=") == 1 { print ENVIRON["KEY"] "=" ENVIRON["NEW_TOKEN"]; next }
+              { print }
+            ' <<< "$ACCOUNT_SETTINGS")
+            settings_changed=true
+
+            local expires_in_days
+            expires_in_days=$(( $(jq -r '.expires_in // 0' <<< "$response") / 86400 ))
+            echo "$key refreshed for $ACCOUNT. Valid for $expires_in_days days."
+          }
+
+          refresh_token IG_ACCESS_TOKEN ig_refresh_token "https://graph.instagram.com/refresh_access_token" || refresh_failed=true
+          refresh_token THREADS_ACCESS_TOKEN th_refresh_token "https://graph.threads.com/refresh_access_token" || refresh_failed=true
+
+          if [ "$settings_changed" = true ]; then
+            printf '%s' "$ACCOUNT_SETTINGS" | gh secret set "ACCOUNT_$ACCOUNT" --repo "$REPOSITORY"
           fi
 
-          echo "::add-mask::$current_token"
-
-          response=$(curl --silent --get \
-            --data-urlencode "grant_type=ig_refresh_token" \
-            --data-urlencode "access_token=$current_token" \
-            "https://graph.instagram.com/refresh_access_token")
-
-          new_token=$(jq -r '.access_token // empty' <<< "$response")
-
-          if [ -z "$new_token" ]; then
-            error_message=$(jq -r '.error.message // "unknown error"' <<< "$response")
-            echo "::error::Instagram did not return a new token for $ACCOUNT: $error_message"
+          if [ "$refresh_failed" = true ]; then
             exit 1
           fi
-
-          echo "::add-mask::$new_token"
-
-          updated_settings=$(NEW_TOKEN="$new_token" awk '
-            /^IG_ACCESS_TOKEN=/ { print "IG_ACCESS_TOKEN=" ENVIRON["NEW_TOKEN"]; next }
-            { print }
-          ' <<< "$ACCOUNT_SETTINGS")
-
-          printf '%s' "$updated_settings" | gh secret set "ACCOUNT_$ACCOUNT" --repo "$REPOSITORY"
-
-          expires_in_days=$(( $(jq -r '.expires_in // 0' <<< "$response") / 86400 ))
-          echo "IG_ACCESS_TOKEN refreshed for $ACCOUNT. Valid for $expires_in_days days."
