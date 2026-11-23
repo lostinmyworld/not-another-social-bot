@@ -24,7 +24,7 @@ It runs on a GitHub Actions schedule, so there is no server to host.
 | Publisher (target) | Status |
 |---|---|
 | Discord | ✅ YouTube: "New YouTube Video" message. Instagram: random header |
-| Threads | ✅ Text post: title (first line) + link with preview |
+| Threads | ✅ YouTube: title + link with preview. Instagram: image + caption (first line) + link |
 | X (Twitter) | ⚠️ Implemented, needs a paid X API plan |
 
 ## How it works

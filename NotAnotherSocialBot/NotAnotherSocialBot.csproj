@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="packages.Social.Oversharers" Version="3.2.1" />
+    <PackageReference Include="packages.Social.Oversharers" Version="3.3.0" />
   </ItemGroup>
 
   <Target Name="CopyEnvLocal" AfterTargets="Build" Condition="Exists('.env.local')">
