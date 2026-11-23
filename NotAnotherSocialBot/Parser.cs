@@ -40,6 +40,7 @@ public class Parser : IParser
         {
             { SocialMedia.Discord, RetrieveFeatureFlagFromEnvironment("PUBLISHER_DISCORD_ENABLED") },
             { SocialMedia.X, RetrieveFeatureFlagFromEnvironment("PUBLISHER_TWITTER_ENABLED") },
+            { SocialMedia.Threads, RetrieveFeatureFlagFromEnvironment("PUBLISHER_THREADS_ENABLED") },
         };
 
         var youTubeChannelId = Environment.GetEnvironmentVariable("YOUTUBE_CHANNEL_ID")!;
