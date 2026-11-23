@@ -30,13 +30,28 @@ public class ThreadsPublisher(IThreadsSharer threadsSharer) : SocialPublisherBas
             return false;
         }
 
-        var linkUrl = string.IsNullOrWhiteSpace(post.Url) ? null : post.Url;
-        var threadsRequest = new ThreadsPostRequest(accessToken, BuildText(post), linkUrl);
+        var threadsRequest = sourceSocial == SocialMedia.Instagram
+            ? BuildInstagramRequest(accessToken, post)
+            : BuildLinkPreviewRequest(accessToken, post);
 
         var response = await threadsSharer.SharePost(threadsRequest);
 
         return response?.IsSuccess
             ?? false;
+    }
+
+    private static ThreadsPostRequest BuildInstagramRequest(string accessToken, PostToShare post)
+    {
+        var imageUrl = string.IsNullOrWhiteSpace(post.ImageUrl) ? null : post.ImageUrl;
+
+        return new(accessToken, BuildText(post), ImageUrl: imageUrl);
+    }
+
+    private static ThreadsPostRequest BuildLinkPreviewRequest(string accessToken, PostToShare post)
+    {
+        var linkUrl = string.IsNullOrWhiteSpace(post.Url) ? null : post.Url;
+
+        return new(accessToken, BuildText(post), linkUrl);
     }
 
     private static string BuildText(PostToShare post)

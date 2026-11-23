@@ -9,6 +9,7 @@ namespace NotAnotherSocialBot.Tests;
 public class ThreadsPublisherTests
 {
     private const string Url = "https://example.com/post";
+    private const string ImageUrl = "https://cdn.example/image.jpg";
 
     [Fact]
     public async Task Publish_Disabled_ReturnsFalseWithoutSharing()
@@ -62,6 +63,53 @@ public class ThreadsPublisherTests
         Assert.Equal("threads-token", request?.AccessToken);
         Assert.Equal($"My video\n\n{Url}", request?.Text);
         Assert.Equal(Url, request?.LinkUrl);
+    }
+
+    [Theory]
+    [InlineData(SocialMedia.YouTube)]
+    [InlineData(SocialMedia.Discord)]
+    [InlineData(SocialMedia.X)]
+    [InlineData(SocialMedia.Facebook)]
+    [InlineData(SocialMedia.TikTok)]
+    [InlineData(SocialMedia.Threads)]
+    public async Task Publish_NotFromInstagram_SendsLinkPreviewWithoutImage(SocialMedia sourceSocial)
+    {
+        var (_, request) = await PublishAndCaptureRequest(
+            new PostToShare(Url, "title", ImageUrl),
+            CreateEnabledEnvironment(),
+            sourceSocial: sourceSocial);
+
+        Assert.Equal(Url, request?.LinkUrl);
+        Assert.Null(request?.ImageUrl);
+    }
+
+    [Fact]
+    public async Task Publish_FromInstagramWithImage_SendsImageWithoutLinkPreview()
+    {
+        var (_, request) = await PublishAndCaptureRequest(
+            new PostToShare(Url, "caption", ImageUrl),
+            CreateEnabledEnvironment(),
+            sourceSocial: SocialMedia.Instagram);
+
+        Assert.Equal($"caption\n\n{Url}", request?.Text);
+        Assert.Equal(ImageUrl, request?.ImageUrl);
+        Assert.Null(request?.LinkUrl);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public async Task Publish_FromInstagramWithoutImage_SendsTextWithoutLinkPreview(string? imageUrl)
+    {
+        var (_, request) = await PublishAndCaptureRequest(
+            new PostToShare(Url, "caption", imageUrl),
+            CreateEnabledEnvironment(),
+            sourceSocial: SocialMedia.Instagram);
+
+        Assert.Equal($"caption\n\n{Url}", request?.Text);
+        Assert.Null(request?.ImageUrl);
+        Assert.Null(request?.LinkUrl);
     }
 
     [Fact]
@@ -120,7 +168,8 @@ public class ThreadsPublisherTests
     private static async Task<(bool IsPublished, ThreadsPostRequest? Request)> PublishAndCaptureRequest(
         PostToShare post,
         EnvironmentVariables environmentVars,
-        ThreadsPostResponse? sharerResponse = null)
+        ThreadsPostResponse? sharerResponse = null,
+        SocialMedia sourceSocial = SocialMedia.YouTube)
     {
         ThreadsPostRequest? sentRequest = null;
 
@@ -132,7 +181,7 @@ public class ThreadsPublisherTests
 
         var publisher = new ThreadsPublisher(threadsSharer.Object);
 
-        var isPublished = await publisher.Publish(post, environmentVars, SocialMedia.YouTube);
+        var isPublished = await publisher.Publish(post, environmentVars, sourceSocial);
 
         return (isPublished, sentRequest);
     }
