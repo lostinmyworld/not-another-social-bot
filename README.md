@@ -29,6 +29,8 @@ It runs on a GitHub Actions schedule, so there is no server to host.
 
 ## How it works
 
+![Architecture](Architecture.png)
+
 ```
 GitHub Actions (hourly)
   └─ load last shared posts from Gist
